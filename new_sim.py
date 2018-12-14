@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 import random
 import numpy as np
-import paho.mqtt.client as mqtt 
+import paho.mqtt.client as mqtt
+import json 
 from time import sleep
 
 #my imports
@@ -70,15 +71,19 @@ def day_distribution(behavior, my_bins):
 		d_height, d_weight = distribution(val["usage"])
 		val['distribution_height'] = np.outer(d_height, behavior)[0]
 		val['distribution_weight'] = np.outer(d_weight, behavior)[0]
-		val['distribution_height'][0] += val['height']
-		val['distribution_weight'][0] += val['weight']
-		val['distribution_height'] = np.cumsum(val['distribution_height'])
-		val['distribution_weight'] = np.cumsum(val['distribution_weight'])
-		val['distribution_height'] = np.clip(val['distribution_height'], 0, val['total_height'])
-		val['distribution_weight'] = np.clip(val['distribution_weight'], 0, val['total_height'])
+		val['distribution_height'] = val['distribution_height'].tolist()
+		val['distribution_weight'] = val['distribution_weight'].tolist()
+
 
 	return my_bins
 
+def check_recolection(my_bins, my_day, my_hour):
+	if day_of_week(my_day) in c.RECOLECTION_DAYS and my_hour == c.RECOLECTION_HOUR:
+		for key, value in my_bins.items():
+			if value['height'] > c.WASTE_LEVEL_RECOLECTION:
+				value['height'] = 0
+				value['weight'] = 0
+	return my_bins
 
 ###### START MQTT ######
 broker = "localhost"
@@ -96,7 +101,8 @@ client.loop_start() #start loop
 ###### START PROGRAM ######
 hour = 1  
 day = 1   
-week = 0  
+month = 1
+year = 2018
 #today = "Monday"
 
 bins = {}
@@ -108,7 +114,7 @@ for i in range(c.BINS_NUMBER):
 		"posY": 9,
 		"weight": 0,
 		"height": 19,
-		"total_height": 100,
+		"total_height": c.TOTAL_HEIGHT,
 		"timestamp": "2018-12-10 10:10:10",
 		"usage": "low"
 	}
@@ -121,24 +127,42 @@ while True:
 
 	#next day
 	if hour%24 == 0:
-		day = day+1
+		day += 1
 		hour = 0
 		print("It's midnight, a new day has been started.")
 		print("Today is ", day_of_week(day))
 		
 		day_distribution(behavior(day_of_week(day)), bins)
-		print(bins)
+	
+	if day==31:
+		month += 1
+		day = 1
+		print("new month number: ", month)
+
+	if month%13 == 0:
+		year += 1
+		month = 1
+		print("Happy new year!!!", year)
 
 	#put trash in the bin
 	for key, value in bins.items():
-		#pop the first value of the array
-		#sum the previous value of trash with the value popped
-		#check if its above size, 
-			#if yes TODO: move to other bin
-		pass
-		#send mqtt
-		client.publish("%s/%s" %(c.TOPIC_BIN) %value['bin_id'], value)
+		#pop the first value of the 
+		current_height = value['distribution_height'].pop(0)
+		current_weight = value['distribution_weight'].pop(0)
+		if((current_height + value['height']) <= value['total_height']):
+			value['height'] += current_height
+			value['weight'] += current_weight
+		else:
+			print("Bin full")
+			#TODO: move current to other bin
 
+		#send mqtt
+		client.publish("{0}/{1}".format(c.TOPIC_BIN, str(value['bin_id'])), str(json.dumps(value)))
+
+
+	bins = check_recolection(bins, day, hour)
+	print(bins)
+	print("hour: ", hour)
 	hour += 1
 	sleep(2)
 
