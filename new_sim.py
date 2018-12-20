@@ -17,6 +17,9 @@ import constants as c
 def on_connect(client, userdata, flags, rc):
 	if rc==0:
 		print("connected OK")
+		client.subscribe(c.TOPIC_CONFIG)
+		print(c.TOPIC_EMPTY)
+		client.subscribe(c.TOPIC_EMPTY)
 	else:
 		print("Bad connection Returned code=",rc)
 
@@ -24,37 +27,86 @@ def on_disconnect(client, userdata, flags, rc=0):
 	print("Disconnect result code "+str(rc))
 
 def on_message(client, userdata,msg):
-    topic=msg.topic
-    m_decode=str(msg.payload.decode("utf-8"))
+    topic = msg.topic
+    m_decode = str(msg.payload.decode("utf-8"))
     print("message received", m_decode)
 
+    print(topic)
+    if topic == c.TOPIC_EMPTY:
+    	if m_decode == "all":
+    		recolect(bins)
+    		print("EMPTY ALL THE BINS!!!")
+
+
+
 ###### TS FUNCTIONS ######
-def day_of_week(day):
-	if day%7==0:
-		weekday="Monday"
-	if day%7==1:
-		weekday="Tuesday"
-	if day%7==2:
-		weekday="Wednesday"
-	if day%7==3:
-		weekday="Thursday"
-	if day%7==4:
-		weekday="Friday"
-	if day%7==5:
-		weekday="Saturday"
-	if day%7==6:
-		weekday="Sunday"
-	return weekday
+#next day
 
-def full_fake_ts(_year, _month, _day, _hour):
-	return str(parse("{0}-{1}-{2} {3}:00:00".format(_year, _month, _day, _hour)))
+class MyTimestamp():
+		def __init__(self, starting_ts):
+			self.now = starting_ts
+		
+	def update_timestamp(_hour, _day, _month, _year):
+		if _hour%24 == 0:
+			_day += 1
+			_hour = 0
+			print("It's midnight, a new day has been started.")
+			print("Today is ", day_of_week(_day))
+			day_distribution(behavior(day_of_week(_day)), bins)
 
+		#next month
+		if _day==31:
+			_month += 1
+			_day = 1
+			print("new month number: ", _month)
+
+		#next year
+		if _month%13 == 0:
+			_year += 1
+			_month = 1
+			print("Happy new year!!!", _year)
+
+		return _hour, _day, _month, _year
+
+	def create_first_ts(present=1):
+		if present:
+			#split date time
+			_now = datetime.datetime.now()
+			_year, _month, _day = list(map(int,str(_now.date()).split("-")))
+			_hour, _minutes, _seconds = list(map(int,str(_now.time())[:-8].split(":")))
+			_day_week = int(_now.today().weekday())
+
+		else:
+			pass
+			#TODO
+
+		return _year, _month, _day, _hour, _minutes, _seconds, _day_week
+
+	def day_of_week(day):
+		if day%7==0:
+			weekday="Monday"
+		if day%7==1:
+			weekday="Tuesday"
+		if day%7==2:
+			weekday="Wednesday"
+		if day%7==3:
+			weekday="Thursday"
+		if day%7==4:
+			weekday="Friday"
+		if day%7==5:
+			weekday="Saturday"
+		if day%7==6:
+			weekday="Sunday"
+		return weekday
+
+	def full_fake_ts(_year, _month, _day, _hour):
+		return str(parse("{0}-{1}-{2} {3}:00:00".format(_year, _month, _day, _hour)))
 
 
 ###### BINS FUNCTIONS ######
 def behavior(today, starting_hour = 0):
 	if today in ["Sunday", "Saturday"]:
-		return c.BIN_BEHAVIOR_END
+		return c.BIN_BEHAVIOR_END[starting_hour:]
 	else:
 		return (c.BIN_BEHAVIOR_WEEK[starting_hour:])
 
@@ -87,7 +139,6 @@ def day_distribution(behavior, my_bins):
 		val['distribution_height'] = val['distribution_height'].tolist()
 		val['distribution_weight'] = val['distribution_weight'].tolist()
 
-
 	return my_bins
 
 def prepare_update(my_bins):
@@ -117,7 +168,7 @@ def check_recolection(my_bins, my_day, my_hour):
 def signal_handler(signal, frame):
 	print("Exit!")
 
-	
+	#DO SOMETHING?
 
 	sys.exit(0)
 
@@ -140,11 +191,9 @@ my_db = mongodb.MyDB()
 bins_coord = my_db.get_coordinates()
 
 ###### START PROGRAM ######
-#split date time
-now = datetime.datetime.now()
-year, month, day = list(map(int,str(now.date()).split("-")))
-hour, minutes, seconds = list(map(int,str(now.time())[:-8].split(":")))
-day_week = int(now.today().weekday())
+
+_year, _month, _day, _hour, _minutes, _seconds, _day_week = create_first_ts()
+
 bins = {}
 
 
@@ -167,29 +216,9 @@ if __name__ == "__main__":
 	day_distribution(behavior(day_of_week(day_week), hour), bins)
 
 	pp.pprint(bins)
-
 	while True:
 
-		#next day
-		if hour%24 == 0:
-			day += 1
-			hour = 0
-			print("It's midnight, a new day has been started.")
-			print("Today is ", day_of_week(day_week))
-			day_distribution(behavior(day_of_week(day_week)), bins)
-
-		#next month
-		if day==31:
-			month += 1
-			day = 1
-			print("new month number: ", month)
-
-		#next year
-		if month%13 == 0:
-			year += 1
-			month = 1
-			print("Happy new year!!!", year)
-
+		hour, day, month, year = update_timestamp(hour, day, month, year)
 
 		#put trash in the bin
 		for key, value in bins.items():
@@ -206,12 +235,12 @@ if __name__ == "__main__":
 
 			#send mqtt
 			#convert the dictionary in a json and in a string
-			client.publish("{0}/{1}".format(c.TOPIC_BIN, str(value['bin_id'])), str(json.dumps(value))) 
+			client.publish("{0}/{1}".format(c.TOPIC_STATUS, str(value['bin_id'])), str(json.dumps(value))) 
 
 
 		bins = check_recolection(bins, day, hour)
 		prepare_update(bins)
-		print(bins)
+		#print(bins)
 		print("hour: ", hour)
 		hour += 1
 		sleep(2)

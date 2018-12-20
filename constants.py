@@ -9,3 +9,7 @@ BIN_BEHAVIOR_END=[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 
 
 TOPIC_BIN = "smartbin"
+TOPIC_CTRL = TOPIC_BIN+"/ctrl"
+TOPIC_STATUS = TOPIC_BIN+"/status"
+TOPIC_EMPTY = TOPIC_CTRL+"/emptybin"
+TOPIC_CONFIG = TOPIC_CTRL+"/config"
