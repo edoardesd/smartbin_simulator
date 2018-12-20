@@ -5,13 +5,13 @@ import paho.mqtt.client as mqtt
 import json 
 from time import sleep
 import datetime
-from dateutil.parser import parse
 import pprint as pp
-import mongodb
 import signal
 import sys
 #my imports
 import constants as c
+import mongodb
+import Timestamp
 
 ###### MQTT FUNCTIONS ######
 def on_connect(client, userdata, flags, rc):
@@ -34,73 +34,8 @@ def on_message(client, userdata,msg):
     print(topic)
     if topic == c.TOPIC_EMPTY:
     	if m_decode == "all":
-    		recolect(bins)
+    		recollect(bins)
     		print("EMPTY ALL THE BINS!!!")
-
-
-
-###### TS FUNCTIONS ######
-#next day
-
-class MyTimestamp():
-		def __init__(self, starting_ts):
-			self.now = starting_ts
-		
-	def update_timestamp(_hour, _day, _month, _year):
-		if _hour%24 == 0:
-			_day += 1
-			_hour = 0
-			print("It's midnight, a new day has been started.")
-			print("Today is ", day_of_week(_day))
-			day_distribution(behavior(day_of_week(_day)), bins)
-
-		#next month
-		if _day==31:
-			_month += 1
-			_day = 1
-			print("new month number: ", _month)
-
-		#next year
-		if _month%13 == 0:
-			_year += 1
-			_month = 1
-			print("Happy new year!!!", _year)
-
-		return _hour, _day, _month, _year
-
-	def create_first_ts(present=1):
-		if present:
-			#split date time
-			_now = datetime.datetime.now()
-			_year, _month, _day = list(map(int,str(_now.date()).split("-")))
-			_hour, _minutes, _seconds = list(map(int,str(_now.time())[:-8].split(":")))
-			_day_week = int(_now.today().weekday())
-
-		else:
-			pass
-			#TODO
-
-		return _year, _month, _day, _hour, _minutes, _seconds, _day_week
-
-	def day_of_week(day):
-		if day%7==0:
-			weekday="Monday"
-		if day%7==1:
-			weekday="Tuesday"
-		if day%7==2:
-			weekday="Wednesday"
-		if day%7==3:
-			weekday="Thursday"
-		if day%7==4:
-			weekday="Friday"
-		if day%7==5:
-			weekday="Saturday"
-		if day%7==6:
-			weekday="Sunday"
-		return weekday
-
-	def full_fake_ts(_year, _month, _day, _hour):
-		return str(parse("{0}-{1}-{2} {3}:00:00".format(_year, _month, _day, _hour)))
 
 
 ###### BINS FUNCTIONS ######
@@ -141,7 +76,7 @@ def day_distribution(behavior, my_bins):
 
 	return my_bins
 
-def prepare_update(my_bins):
+def prepare_update_db(my_bins):
 	update = []
 	query = []
 	for key, value in my_bins.items():
@@ -150,17 +85,17 @@ def prepare_update(my_bins):
 	
 	my_db.store_final_values(query, update)
 
-###### RECOLECTION ######
-def recolect(my_bins):
+###### RECOLLECTION ######
+def recollect(my_bins):
 	for key, value in my_bins.items():
-		if value['height'] > c.WASTE_LEVEL_RECOLECTION:
+		if value['height'] > c.WASTE_LEVEL_RECOLLECTION:
 			value['height'] = 0
 			value['weight'] = 0
 	return my_bins
 
-def check_recolection(my_bins, my_day, my_hour):
-	if day_of_week(my_day) in c.RECOLECTION_DAYS and my_hour == c.RECOLECTION_HOUR:
-		return recolect(my_bins)
+def check_recollection(my_bins, my_day, my_hour):
+	if my_day in c.RECOLLECTION_DAYS and my_hour == c.RECOLLECTION_HOUR:
+		return recollect(my_bins)
 	else:
 		return my_bins 
 
@@ -187,15 +122,15 @@ client.loop_start() #start loop
 ###### END MQTT ######
 
 ###### MONGODB ######
-my_db = mongodb.MyDB() 
+starting_time = datetime.datetime.now()
+my_ts = Timestamp.MyTimestamp(starting_time)
+
+my_db = mongodb.MyDB(starting_time) 
 bins_coord = my_db.get_coordinates()
 
 ###### START PROGRAM ######
 
-_year, _month, _day, _hour, _minutes, _seconds, _day_week = create_first_ts()
-
 bins = {}
-
 
 if __name__ == "__main__":
 	signal.signal(signal.SIGINT, signal_handler)
@@ -206,26 +141,30 @@ if __name__ == "__main__":
 			"bin_id": _coord["_id"].encode("utf-8"),
 			"coordinates": {"x": _coord["x"],
 							"y": _coord["y"]},
-			"timestamp": full_fake_ts(year, month, day, hour),
-			"usage": "low",
+			"timestamp": my_ts.getFullTs(),
+			"usage": my_db.getUsage(_coord["_id"]),
 			"weight": last_weight,
 			"height": last_height,
 			"total_height": my_db.get_dimension(_coord["_id"])
 		}
 
-	day_distribution(behavior(day_of_week(day_week), hour), bins)
+	day_distribution(behavior(my_ts.dayOfWeek(), my_ts.getHour()), bins)
 
 	pp.pprint(bins)
-	while True:
 
-		hour, day, month, year = update_timestamp(hour, day, month, year)
+	while True:
+		
+		if my_ts.getHour() == 0:
+			day_distribution(behavior(my_ts.dayOfWeek()), bins)
+
+			print("Today is ", my_ts.getDay(), my_ts.getMonth(), my_ts.getYear())
 
 		#put trash in the bin
 		for key, value in bins.items():
 			#pop the first value of the 
 			current_height = value['distribution_height'].pop(0)
 			current_weight = value['distribution_weight'].pop(0)
-			value['timestamp'] = full_fake_ts(year, month, day, hour)
+			value['timestamp'] = my_ts.getFullTs()
 			if((current_height + value['height']) <= value['total_height']):
 				value['height'] += current_height
 				value['weight'] += current_weight
@@ -238,12 +177,13 @@ if __name__ == "__main__":
 			client.publish("{0}/{1}".format(c.TOPIC_STATUS, str(value['bin_id'])), str(json.dumps(value))) 
 
 
-		bins = check_recolection(bins, day, hour)
-		prepare_update(bins)
+		bins = check_recollection(bins, my_ts.dayOfWeek(), my_ts.getHour())
+		my_db.updateFinalDB(bins)
 		#print(bins)
-		print("hour: ", hour)
-		hour += 1
+		
 		sleep(2)
+		my_ts.updateTimestamp()
+
 
 
 
