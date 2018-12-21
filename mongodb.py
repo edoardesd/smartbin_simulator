@@ -4,9 +4,9 @@ import pymongo
 
 class MyDB():
 
-	def __init__(self, my_time):
+	def __init__(self, db_type, my_time):
 		self.myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-		self.mydb = self.myclient["bin_simulation"]
+		self.mydb = self.myclient[db_type]
 		self.historydb = self.myclient["bin_historical"]
 		self.coordinates = self.mydb["coordinates"]
 		self.dimension = self.mydb["dimension"]

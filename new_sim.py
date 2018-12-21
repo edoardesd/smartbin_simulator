@@ -13,6 +13,8 @@ import constants as c
 import mongodb
 import Timestamp
 
+
+wait_config = True
 ###### MQTT FUNCTIONS ######
 def on_connect(client, userdata, flags, rc):
 	if rc==0:
@@ -36,6 +38,10 @@ def on_message(client, userdata,msg):
     	if m_decode == "all":
     		recollect(bins)
     		print("EMPTY ALL THE BINS!!!")
+
+    if topic == c.TOPIC_CONFIG:
+    	global wait_config
+    	wait_config = False
 
 
 ###### BINS FUNCTIONS ######
@@ -66,7 +72,6 @@ def distribution(use):
 	return size_waste, weight_waste
 
 def day_distribution(behavior, my_bins):
-	print("BEHA", behavior)
 	for key, val in my_bins.items():
 		d_height, d_weight = distribution(val["usage"])
 		val['distribution_height'] = np.outer(d_height, behavior)[0]
@@ -75,15 +80,6 @@ def day_distribution(behavior, my_bins):
 		val['distribution_weight'] = val['distribution_weight'].tolist()
 
 	return my_bins
-
-def prepare_update_db(my_bins):
-	update = []
-	query = []
-	for key, value in my_bins.items():
-		query.append({"_id": value["bin_id"]})
-		update.append({"weight": value["weight"], "height": value["height"]})
-	
-	my_db.store_final_values(query, update)
 
 ###### RECOLLECTION ######
 def recollect(my_bins):
@@ -125,7 +121,7 @@ client.loop_start() #start loop
 starting_time = datetime.datetime.now()
 my_ts = Timestamp.MyTimestamp(starting_time)
 
-my_db = mongodb.MyDB(starting_time) 
+my_db = mongodb.MyDB("bin_simulation", starting_time) 
 bins_coord = my_db.get_coordinates()
 
 ###### START PROGRAM ######
@@ -134,6 +130,10 @@ bins = {}
 
 if __name__ == "__main__":
 	signal.signal(signal.SIGINT, signal_handler)
+
+	wait_config = False
+	while wait_config:
+		pass
 
 	for _index, _coord in enumerate(bins_coord):
 		last_height, last_weight = my_db.last_values(_coord["_id"])
