@@ -12,7 +12,22 @@ import sys
 import constants as c
 import mongodb
 import Timestamp
+import config
 
+config_file = {
+			  "prev_config": False,
+			  "n_of_bins": 12,
+			  "usage": "mid",
+			  "bin_dimension": 100,
+			  "collection_day": ["Tuesady", "Thursday"],
+			  "collection_hour": 18,
+			  "speed": 2,
+			  "waste_rec_level": 65,
+			  "area": {"x1": 10,
+			  		   "y1": 10,
+			  		   "x2": 11,
+			  		   "y2": 11}
+			  }
 
 wait_config = True
 ###### MQTT FUNCTIONS ######
@@ -121,30 +136,28 @@ client.loop_start() #start loop
 starting_time = datetime.datetime.now()
 my_ts = Timestamp.MyTimestamp(starting_time)
 
-my_db = mongodb.MyDB("bin_simulation", starting_time) 
-bins_coord = my_db.get_coordinates()
-GLOBAL = my_db.getConstants()
-
-RECOLLECTION_DAYS = GLOBAL["collection_day"]
-RECOLLECTION_HOUR = GLOBAL["collection_hour"]
-DELAY = GLOBAL["speed"]
-WASTE_LEVEL_RECOLLECTION = GLOBAL["waste_rec_level"] 
-
 ###### START PROGRAM ######
-
 bins = {}
 
 if __name__ == "__main__":
 	signal.signal(signal.SIGINT, signal_handler)
 
 	wait_config = False
-	while wait_config:
-		pass
+	
+	my_config = config.MyConfig("old", config_file)
+	my_db = mongodb.MyDB("bin_simulation", starting_time) 
+	bins_coord = my_db.get_coordinates()
+	GLOBAL = my_db.getConstants()
+
+	RECOLLECTION_DAYS = GLOBAL["collection_day"]
+	RECOLLECTION_HOUR = GLOBAL["collection_hour"]
+	DELAY = GLOBAL["speed"]
+	WASTE_LEVEL_RECOLLECTION = GLOBAL["waste_rec_level"] 
 
 	for _index, _coord in enumerate(bins_coord):
 		last_height, last_weight = my_db.last_values(_coord["_id"])
 		bins[_index] = {
-			"bin_id": _coord["_id"].encode("utf-8"),
+			"bin_id": _coord["_id"],
 			"coordinates": {"x": _coord["x"],
 							"y": _coord["y"]},
 			"timestamp": my_ts.getFullTs(),
@@ -157,6 +170,7 @@ if __name__ == "__main__":
 	day_distribution(behavior(my_ts.dayOfWeek(), my_ts.getHour()), bins)
 
 	pp.pprint(bins)
+	sleep(3)
 
 	while True:
 		
@@ -180,12 +194,11 @@ if __name__ == "__main__":
 
 			#send mqtt
 			#convert the dictionary in a json and in a string
-			client.publish("{0}/{1}".format(c.TOPIC_STATUS, str(value['bin_id'])), str(json.dumps(value))) 
+			client.publish("{0}/{1}".format(c.TOPIC_STATUS, str(value['bin_id'])), json.dumps(value)) 
 
 
 		bins = check_recollection(bins, my_ts.dayOfWeek(), my_ts.getHour())
 		my_db.updateFinalDB(bins)
-		#print(bins)
 		
 		sleep(DELAY)
 		print("-"*10)

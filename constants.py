@@ -6,6 +6,7 @@
 #WASTE_LEVEL_RECOLLECTION = 65 #level wether or not recollect
 BIN_BEHAVIOR_WEEK = [0, 0, 0, 0, 0, 0, 0, 0.02, 0.02, 0.1, 0.1, 0.02, 0.2, 0.2, 0.02, 0.02, 0.1, 0.1, 0.02, 0.02, 0.02, 0.02, 0, 0]
 BIN_BEHAVIOR_END= [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+USAGE_TYPE = ["very_low", "low", "mid", "high", "very_high"]
 
 
 TOPIC_BIN = "smartbin"
