@@ -12,6 +12,7 @@ class MyDB():
 		self.dimension = self.mydb["dimension"]
 		self.restore = self.mydb["restore_values"]
 		self.usage = self.mydb["usage"]
+		self.constants = self.mydb["constants"]
 
 		self.values = self.createHistoryCollection(self.historydb, my_time)
 
@@ -74,5 +75,9 @@ class MyDB():
 	def createHistoryCollection(self, db_name, coll_name):
 		simulation_name = "simulation_"+str(coll_name)[:-7].replace(" ", "_")
 		return db_name[simulation_name]
+
+	def getConstants(self):
+		return self.constants.find_one()
+
 
 

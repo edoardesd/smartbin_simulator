@@ -84,13 +84,13 @@ def day_distribution(behavior, my_bins):
 ###### RECOLLECTION ######
 def recollect(my_bins):
 	for key, value in my_bins.items():
-		if value['height'] > c.WASTE_LEVEL_RECOLLECTION:
+		if value['height'] > WASTE_LEVEL_RECOLLECTION:
 			value['height'] = 0
 			value['weight'] = 0
 	return my_bins
 
 def check_recollection(my_bins, my_day, my_hour):
-	if my_day in c.RECOLLECTION_DAYS and my_hour == c.RECOLLECTION_HOUR:
+	if my_day in RECOLLECTION_DAYS and my_hour == RECOLLECTION_HOUR:
 		return recollect(my_bins)
 	else:
 		return my_bins 
@@ -123,6 +123,12 @@ my_ts = Timestamp.MyTimestamp(starting_time)
 
 my_db = mongodb.MyDB("bin_simulation", starting_time) 
 bins_coord = my_db.get_coordinates()
+GLOBAL = my_db.getConstants()
+
+RECOLLECTION_DAYS = GLOBAL["collection_day"]
+RECOLLECTION_HOUR = GLOBAL["collection_hour"]
+DELAY = GLOBAL["speed"]
+WASTE_LEVEL_RECOLLECTION = GLOBAL["waste_rec_level"] 
 
 ###### START PROGRAM ######
 
@@ -181,7 +187,8 @@ if __name__ == "__main__":
 		my_db.updateFinalDB(bins)
 		#print(bins)
 		
-		sleep(2)
+		sleep(DELAY)
+		print("-"*10)
 		my_ts.updateTimestamp()
 
 
