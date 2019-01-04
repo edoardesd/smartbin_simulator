@@ -71,16 +71,18 @@ class Functions():
 
 
 	###### RECOLLECTION ######
-	def _recollect(self, my_bins):
+	def recollect(self, my_bins, force=False):
+		print("Empty the bins!")
+
 		for key, value in my_bins.items():
-			if value['height'] > self.const.getWasteRec():
+			if value['height'] > self.const.getWasteRec() or force:
 				value['height'] = 0
 				value['weight'] = 0
 		return my_bins
 
 	def check_recollection(self, my_bins, my_day, my_hour):
 		if my_day in self.const.getCollDay() and my_hour == self.const.getCollHour():
-			return self._recollect(my_bins)
+			return self.recollect(my_bins)
 		else:
 			return my_bins 
 

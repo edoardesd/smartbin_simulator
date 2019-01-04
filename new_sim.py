@@ -38,9 +38,9 @@ def on_message(client, userdata,msg):
     print("on topic", topic)
 
     if topic == c.TOPIC_EMPTY:
-    	if m_decode == "all":
-    		recollect(bins)
-    		print("EMPTY ALL THE BINS!!!")
+    	if m_decode == 'all':
+    		my_func.recollect(bins, True)
+    	
 
     if topic == c.TOPIC_CONFIG:
 
@@ -76,11 +76,11 @@ client.connect(broker) #connect to broker
 client.loop_start() #start loop
 ###### END MQTT ######
 
-import time
-_starting_time = datetime.datetime.now().timestamp()
 
-my_ts = Timestamp.MyTimestamp(_starting_time+3600)
+_starting_time = datetime.datetime.now().timestamp()+3600
+my_ts = Timestamp.MyTimestamp(_starting_time)
 print(my_ts.getFullTs())
+
 my_db = mongodb.MyDB("bin_simulation", _starting_time)
 my_const = c.Constants(my_db)
 my_func = f.Functions(my_const, my_db)
