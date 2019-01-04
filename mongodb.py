@@ -76,6 +76,7 @@ class MyDB():
 		simulation_name = "simulation_"+str(coll_name)[:-7].replace(" ", "_")
 		return db_name[simulation_name]
 
+	#maybe_unused
 	def getConstants(self):
 		return self.constants.find_one()
 

@@ -23,12 +23,12 @@ class MyConfig():
 
 	def _createNewConfig(self, my_config):
 		print("Create a new configuration")
-		bins = {}
+		bins_conf = {}
 		usage = random.choices(population=c.USAGE_TYPE, weights=self._create_weight(my_config["usage"]), k=my_config["n_of_bins"])
 
 		for i in range(my_config["n_of_bins"]):
 			_x, _y = self._position(my_config["area"]["x1"], my_config["area"]["x2"], my_config["area"]["y1"], my_config["area"]["y2"])
-			bins[i] = {
+			bins_conf[i] = {
 					"bin_id": "bin"+str(i),
 					"coordinates": {"x": _x,
 									"y": _y},
@@ -41,7 +41,7 @@ class MyConfig():
 					"floor": "NULL",
 					"description": "NULL"
 				}
-		return bins
+		return bins_conf
 
 	def _position(self, sizex1, sizex2, sizey1, sizey2):
 	    posx = random.uniform(sizex1, sizex2)
@@ -68,7 +68,6 @@ class MyConfig():
 		my_db.storeUpdate(my_bins)
 		my_db.storeConstants(my_config)
 		print("DONE\n")
-
 
 
 #generate bins

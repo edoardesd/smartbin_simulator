@@ -48,3 +48,7 @@ class MyDB():
 
 		self._createCol("constants", constants)
 
+	def getConstants(self):
+		constants = self.mydb["constants"]
+		x = constants.find_one()
+		return x["collection_day"], x["collection_hour"], x["speed"], x["waste_rec_level"]
