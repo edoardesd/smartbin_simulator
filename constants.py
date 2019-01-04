@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
-import DBStore
+import mongodb
 
 class Constants():
-	def __init__(self):
-		my_db = DBStore.MyDB("bin_simulation")
-		self.col_day, self.col_hour, self.speed, self.waste_rec = my_db.getConstants()
+	def __init__(self, db):
+		self.db = db
+		self.col_day, self.col_hour, self.speed, self.waste_rec = self.db.getConstants()
 
 	def getCollDay(self):
 		return self.col_day
@@ -51,4 +51,4 @@ config_file = {
 			  		   "y1": 10,
 			  		   "x2": 11,
 			  		   "y2": 11}
-			  }
+			  }	

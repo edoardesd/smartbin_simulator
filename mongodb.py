@@ -14,19 +14,59 @@ class MyDB():
 		self.usage = self.mydb["usage"]
 		self.constants = self.mydb["constants"]
 
-		self.values = self.createHistoryCollection(self.historydb, my_time)
+		self.values = self._createHistoryCollection(self.historydb, my_time)
 
 
 	def available_dbs(self):
 		print(self.myclient.list_database_names())
 
-	def _store_final_values(self, my_query, my_update):
-		for q, u in zip(my_query, my_update):
-			x = self.restore.update(q, u)
+	##### STORING FUNCTIONS #####
+	def updateFinalDB(self, my_bins):
+		final_update = []
+		local_update = {}
+		query = []
+		for key, value in my_bins.items():
+			query.append({"_id": value["bin_id"]})
+			final_update.append({"weight": value["weight"], "height": value["height"]})
+			local_update[value["bin_id"]] = {"weight": value["weight"], "height": value["height"]}
 
-	def _store_values(self, my_update):
-		x = self.values.insert(my_update)
+		local_update["_id"] = my_bins[0]["timestamp"]
+		self._store_final_values(query, final_update)
+		self._store_values(local_update)
 
+	def storeUpdate(self, my_config):
+		coord = []
+		dimension = []
+		usage = []
+		old_val = []
+		for key, value in my_config.items():
+			coord.append({"_id": value["bin_id"],
+						  "x": value["coordinates"]["x"],
+						  "y": value["coordinates"]["y"],
+						  "building": value["building"],
+						  "floor": value["floor"], 
+						  "description": value["description"]})
+			dimension.append({"_id": value["bin_id"], "total_height": value["total_height"]})
+			usage.append({"_id": value["bin_id"], "usage": value["usage"]})
+			old_val.append({"_id": value["bin_id"],
+							"weight": value["weight"],
+						    "height": value["height"]})
+
+		self._createCol("coordinates", coord)
+		self._createCol("dimension", dimension)
+		self._createCol("usage", usage)
+		self._createCol("restore_values", old_val)
+
+	def storeConstants(self, my_config):
+		constants = [{"_id": "config",
+						"collection_day": my_config["collection_day"],
+				   	    "collection_hour": my_config["collection_hour"],
+				   	    "speed": my_config["speed"],
+				   	    "waste_rec_level": my_config["waste_rec_level"]}]
+
+		self._createCol("constants", constants)
+
+	##### QUERYING FUNCTIONS #####
 	def getUsage(self, my_id):
 		_where = {"_id": my_id}
 		_select = {"_id": 0, "usage": 1}
@@ -35,7 +75,6 @@ class MyDB():
 
 	def last_values(self, my_id):
 		_where = {"_id": my_id}
-		print(my_id)
 		_select = {"_id": 0, "height": 1, "weight": 1}
 		for x in self.restore.find(_where, _select):
 			return x['height'], x['weight']
@@ -59,26 +98,28 @@ class MyDB():
 
 		return _bins
 
-	def updateFinalDB(self, my_bins):
-		final_update = []
-		local_update = {}
-		query = []
-		for key, value in my_bins.items():
-			query.append({"_id": value["bin_id"]})
-			final_update.append({"weight": value["weight"], "height": value["height"]})
-			local_update[value["bin_id"]] = {"weight": value["weight"], "height": value["height"]}
+	def getConstants(self):
+		constants = self.mydb["constants"]
+		x = constants.find_one()
+		return x["collection_day"], x["collection_hour"], x["speed"], x["waste_rec_level"]
 
-		local_update["_id"] = my_bins[0]["timestamp"]
-		self._store_final_values(query, final_update)
-		self._store_values(local_update)
 
-	def createHistoryCollection(self, db_name, coll_name):
+
+	##### PRIVATE METHODS #####
+	def _createHistoryCollection(self, db_name, coll_name):
 		simulation_name = "simulation_"+str(coll_name)[:-7].replace(" ", "_")
 		return db_name[simulation_name]
 
-	#maybe_unused
-	def getConstants(self):
-		return self.constants.find_one()
+	def _store_final_values(self, my_query, my_update):
+		for q, u in zip(my_query, my_update):
+			x = self.restore.update(q, u)
 
+	def _store_values(self, my_update):
+		x = self.values.insert(my_update)
 
+	def _createCol(self, my_col, my_update):
+		col = self.mydb[my_col]
+		col.delete_many({})	
 
+		for u in my_update:
+			x = col.insert(u)

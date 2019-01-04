@@ -2,29 +2,30 @@
 import random
 import pprint as pp
 
-import DBStore
+import mongodb
 import constants as c
 
 
-
-
 class MyConfig():
-	def __init__(self, conf_type, file_conf = None):
-		self.type = conf_type
+	def __init__(self, file_conf):
+		self.file_conf = file_conf
 
-		if self.type == "old":
+		if self.file_conf["prev_config"]:
 			print("Load old configuration")
-		elif self.type == "new":
-			self.file_conf = file_conf
+		else:
 			self.bins = self._createNewConfig(self.file_conf)
 			self._storeConstants(self.file_conf, self.bins)
-		else:
-			print("FUCKIJNG ERROR!")
+		
 
 	def _createNewConfig(self, my_config):
 		print("Create a new configuration")
 		bins_conf = {}
-		usage = random.choices(population=c.USAGE_TYPE, weights=self._create_weight(my_config["usage"]), k=my_config["n_of_bins"])
+		
+		print("number of bins", int(my_config["n_of_bins"]))
+
+		usage = random.choices(population=c.USAGE_TYPE,
+							   weights=self._create_weight(my_config["usage"]),
+							   k=my_config["n_of_bins"])
 
 		for i in range(my_config["n_of_bins"]):
 			_x, _y = self._position(my_config["area"]["x1"], my_config["area"]["x2"], my_config["area"]["y1"], my_config["area"]["y2"])
@@ -64,16 +65,7 @@ class MyConfig():
 		return w
 
 	def _storeConstants(self, my_config, my_bins):
-		my_db = DBStore.MyDB("bin_simulation") 
+		my_db = mongodb.MyDB("bin_simulation", "none")
 		my_db.storeUpdate(my_bins)
 		my_db.storeConstants(my_config)
 		print("DONE\n")
-
-
-#generate bins
-	#coordinates
-	#usage
-
-#speed
-#recollection day
-#recollection hour

@@ -76,10 +76,14 @@ client.connect(broker) #connect to broker
 client.loop_start() #start loop
 ###### END MQTT ######
 
-_starting_time = datetime.datetime.now()
-my_ts = Timestamp.MyTimestamp(_starting_time)
+import time
+_starting_time = datetime.datetime.now().timestamp()
+
+my_ts = Timestamp.MyTimestamp(_starting_time+3600)
+print(my_ts.getFullTs())
 my_db = mongodb.MyDB("bin_simulation", _starting_time)
-const = c.Constants()
+my_const = c.Constants(my_db)
+my_func = f.Functions(my_const, my_db)
 
 ###### START PROGRAM ######
 bins = {}
@@ -90,16 +94,16 @@ if __name__ == "__main__":
 	while wait_config:
 		pass	
 	
-
-	pp.pprint(ast.literal_eval(config_file))	
-	bins = f.load_configuration(config_file, my_ts, my_db)
+	config_file = ast.literal_eval(config_file)
+	pp.pprint(config_file)	
+	bins = my_func.load_configuration(config_file, my_ts)
 	pp.pprint(bins)
 
 
 	while True:
-		
+		print(my_ts.getHour())
 		if my_ts.getHour() == 0:
-			f.day_distribution(f.behavior(my_ts.dayOfWeek()), bins)
+			my_func.day_distribution(my_func.behavior(my_ts.dayOfWeek()), bins)
 
 			print("Today is ", my_ts.getDay(), my_ts.getMonth(), my_ts.getYear())
 
@@ -121,10 +125,10 @@ if __name__ == "__main__":
 			client.publish("{0}/{1}".format(c.TOPIC_STATUS, str(value['bin_id'])), json.dumps(value)) 
 
 
-		bins = f.check_recollection(bins, my_ts.dayOfWeek(), my_ts.getHour())
+		bins = my_func.check_recollection(bins, my_ts.dayOfWeek(), my_ts.getHour())
 		my_db.updateFinalDB(bins)
 		
-		sleep(const.getSpeed())
+		sleep(my_const.getSpeed())
 		print("-"*10)
 		my_ts.updateTimestamp()
 
