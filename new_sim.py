@@ -110,15 +110,17 @@ if __name__ == "__main__":
 		#put trash in the bin
 		for key, value in bins.items():
 			#pop the first value of the 
-			current_height = value['distribution_height'].pop(0)
-			current_weight = value['distribution_weight'].pop(0)
+			current = {}
 			value['timestamp'] = my_ts.getFullTs()
-			if((current_height + value['height']) <= value['total_height']):
-				value['height'] += current_height
-				value['weight'] += current_weight
-			else:
-				print("Bin full")
-				#TODO: move current to other bin
+			for waste_type in my_const.getNames():
+				current[waste_type] = value["distribution"][waste_type].pop(0)
+				
+				if((current[waste_type] + value['levels'][waste_type]) <= value['total_height']):
+					value['levels'][waste_type] += current[waste_type]
+				else:
+					print(waste_type, " full")
+					#TODO: move current to other bin
+			
 
 			#send mqtt
 			#convert the dictionary in a json and in a string

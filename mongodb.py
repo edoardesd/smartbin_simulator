@@ -26,9 +26,11 @@ class MyDB():
 		local_update = {}
 		query = []
 		for key, value in my_bins.items():
+			update = {"levels": value['levels']}
+
 			query.append({"_id": value["bin_id"]})
-			final_update.append({"weight": value["weight"], "height": value["height"]})
-			local_update[value["bin_id"]] = {"weight": value["weight"], "height": value["height"]}
+			final_update.append(update)
+			local_update[value["bin_id"]] = update
 
 		local_update["_id"] = my_bins[0]["timestamp"]
 		self._store_final_values(query, final_update)
@@ -49,8 +51,8 @@ class MyDB():
 			dimension.append({"_id": value["bin_id"], "total_height": value["total_height"]})
 			usage.append({"_id": value["bin_id"], "usage": value["usage"]})
 			old_val.append({"_id": value["bin_id"],
-							"weight": value["weight"],
-						    "height": value["height"]})
+							"levels": value['levels']
+						    })
 
 		self._createCol("coordinates", coord)
 		self._createCol("dimension", dimension)
@@ -75,9 +77,9 @@ class MyDB():
 
 	def last_values(self, my_id):
 		_where = {"_id": my_id}
-		_select = {"_id": 0, "height": 1, "weight": 1}
+		_select = {"_id": 0, "levels": 1}
 		for x in self.restore.find(_where, _select):
-			return x['height'], x['weight']
+			return x["levels"]
 
 	def get_dimension(self, my_id):
 		_where = {"_id": my_id}

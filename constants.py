@@ -5,6 +5,8 @@ import mongodb
 class Constants():
 	def __init__(self, db):
 		self.db = db
+		self.waste_name = ["unsorted", "plastic", "paper", "glass"]
+		self.usage_type = ["very_low", "low", "mid", "high", "very_high"]
 
 	def loadConstants(self):
 		self.col_day, self.col_hour, self.speed, self.waste_rec = self.db.getConstants()
@@ -19,7 +21,7 @@ class Constants():
 		return self.speed
 
 	def getWasteRec(self):
-		return self.speed
+		return self.waste_rec
 
 	def getBinWeek(self):
 		return [0, 0, 0, 0, 0, 0, 0, 0.02, 0.02, 0.1, 0.1, 0.02, 0.2, 0.2, 0.02, 0.02, 0.1, 0.1, 0.02, 0.02, 0.02, 0.02, 0, 0]
@@ -27,8 +29,12 @@ class Constants():
 	def getBinEnd(self):
 		return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
+	def getNames(self):
+		return self.waste_name
 
-USAGE_TYPE = ["very_low", "low", "mid", "high", "very_high"]
+	def getUsage(self):
+		return self.usage_type
+
 
 TOPIC_BIN = "smartbin"
 ## CTRL

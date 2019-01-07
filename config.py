@@ -1,20 +1,19 @@
 #!/usr/bin/python3
 import random
 import pprint as pp
-
 import mongodb
-import constants as c
 
 
 class MyConfig():
-	def __init__(self, file_conf):
+	def __init__(self, file_conf, const):
 		self.file_conf = file_conf
+		self.const = const
 
 		if self.file_conf["prev_config"]:
 			print("Load old configuration")
 		else:
 			self.bins = self._createNewConfig(self.file_conf)
-			self._storeConstants(self.file_conf, self.bins)
+			self._storeAll(self.file_conf, self.bins)
 		
 
 	def _createNewConfig(self, my_config):
@@ -23,7 +22,7 @@ class MyConfig():
 		
 		print("number of bins", int(my_config["n_of_bins"]))
 
-		usage = random.choices(population=c.USAGE_TYPE,
+		usage = random.choices(population=self.const.getUsage(),
 							   weights=self._create_weight(my_config["usage"]),
 							   k=my_config["n_of_bins"])
 
@@ -35,13 +34,14 @@ class MyConfig():
 									"y": _y},
 					"timestamp": "NULL",
 					"usage": usage[i],
-					"weight": 0,
-					"height": 0,
+					"levels": dict((el,0) for el in self.const.getNames()), #create dictionary with 0 from the WASTE_NAME list
 					"total_height": my_config["bin_dimension"],
 					"building": "NULL",
 					"floor": "NULL",
 					"description": "NULL"
 				}
+
+		pp.pprint(bins_conf)
 		return bins_conf
 
 	def _position(self, sizex1, sizex2, sizey1, sizey2):
@@ -64,7 +64,7 @@ class MyConfig():
 		
 		return w
 
-	def _storeConstants(self, my_config, my_bins):
+	def _storeAll(self, my_config, my_bins):
 		my_db = mongodb.MyDB("bin_simulation", "none")
 		my_db.storeUpdate(my_bins)
 		my_db.storeConstants(my_config)
