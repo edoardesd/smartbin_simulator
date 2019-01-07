@@ -5,6 +5,8 @@ import mongodb
 class Constants():
 	def __init__(self, db):
 		self.db = db
+
+	def myConstants(self):
 		self.col_day, self.col_hour, self.speed, self.waste_rec = self.db.getConstants()
 
 	def getCollDay(self):

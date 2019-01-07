@@ -46,7 +46,6 @@ def on_message(client, userdata,msg):
 
     	global wait_config
     	wait_config = False
-    	import ast
 		
     	global config_file
     	config_file = m_decode
@@ -95,8 +94,9 @@ if __name__ == "__main__":
 		pass	
 	
 	config_file = ast.literal_eval(config_file)
-	pp.pprint(config_file)	
+	pp.pprint(config_file)
 	bins = my_func.load_configuration(config_file, my_ts)
+	
 	pp.pprint(bins)
 
 

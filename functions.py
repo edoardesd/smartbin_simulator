@@ -13,6 +13,7 @@ class Functions():
 		starting_bins = {}
 		#already in msg, fix new and old
 		my_config = config.MyConfig(my_config_file)
+		self.const.myConstants()
 		bins_coord = self.db.get_coordinates()
 
 		for _index, _coord in enumerate(bins_coord):
