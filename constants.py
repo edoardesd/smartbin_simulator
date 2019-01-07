@@ -7,7 +7,7 @@ class Constants():
 		self.db = db
 
 	def myConstants(self):
-		self.col_day, self.col_hour, self.speed, self.waste_rec = self.db.getConstants()
+		self.col_day, self.col_hour, self.speed, self.waste_rec = self.db.loadConstants()
 
 	def getCollDay(self):
 		return self.col_day
