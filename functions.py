@@ -1,7 +1,10 @@
 #!/usr/bin/python3
 import random
 import numpy as np
+from scipy import spatial
+
 import config
+
 
 class Functions():
 	def __init__(self, const, db):
@@ -30,9 +33,9 @@ class Functions():
 				"total_height": self.db.get_dimension(_coord["_id"])
 			}
 
-		self.day_distribution(self.behavior(ts.dayOfWeek(), ts.getHour()), starting_bins)
-
-		return starting_bins
+		self.bins = self.day_distribution(self.behavior(ts.dayOfWeek(), ts.getHour()), starting_bins)
+	
+		return self.bins
 
 	###### BINS FUNCTIONS ######
 	def behavior(self, today, starting_hour = 0):
@@ -82,10 +85,9 @@ class Functions():
 	def recollect(self, my_bins, force=False):
 		print("Empty the bins!")
 		for key, value in my_bins.items():
-			if value['levels']['unsorted'] > self.const.getWasteRec() or force:
-				value['levels']['unsorted'] = 0
-			if value['levels']['plastic'] > self.const.getWasteRec() or force:
-				value['levels']['plastic'] = 0
+			for waste_type, level in value['levels'].items():
+				if level > self.const.getWasteRec() or force:
+					my_bins[key]['levels'][waste_type] = 0
 		return my_bins
 
 	def check_recollection(self, my_bins, my_day, my_hour):
@@ -94,5 +96,17 @@ class Functions():
 		else:
 			return my_bins 
 
+	def _getCoord(self):
+		self.coordinates = []
+		for key, val in self.bins.items():
+			self.coordinates.append([val["coordinates"]["x"], val["coordinates"]["y"]])
 
+		return self.coordinates
 
+	def calculateNeighbours(self, sigle_bin, deep):
+		tree = spatial.KDTree(self._getCoord())
+		pts = np.array([sigle_bin["coordinates"]["x"], sigle_bin["coordinates"]["y"]])
+		distance, location =  tree.query(pts, k=deep)
+		return location[-1:][0]
+
+		

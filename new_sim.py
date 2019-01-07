@@ -86,18 +86,39 @@ my_func = f.Functions(my_const, my_db)
 
 ###### START PROGRAM ######
 bins = {}
+littering = 0
+
+def throwOut_trash(my_bins, the_bin, my_current, w_type, nearest=1):
+	nearest += 1
+	if((my_current + my_bins[the_bin]['levels'][w_type]) <= my_bins[the_bin]['total_height']):
+		my_bins[the_bin]['levels'][waste_type] += current
+	else:
+		print(my_bins[the_bin]["bin_id"], ": ", waste_type, "full")
+		new_bin = my_func.calculateNeighbours(my_bins[key], nearest)
+		print("throw out in bin", new_bin)
+		if nearest < len(my_bins):
+			throwOut_trash(my_bins, new_bin, my_current, w_type, nearest)
+		else:
+			print("littering trash! OMG")
+			global littering
+			littering += my_current
 
 if __name__ == "__main__":
 	signal.signal(signal.SIGINT, signal_handler)
 
 	while wait_config:
-		pass	
+		#pass
+		config_file = c.config_file	
+		wait_config = False
 	
 	config_file = ast.literal_eval(config_file)
 	pp.pprint(config_file)
 	bins = my_func.load_configuration(config_file, my_ts)
-	
 	pp.pprint(bins)
+	print("\n\n\n")
+
+	sleep(2)
+
 
 
 	while True:
@@ -105,22 +126,16 @@ if __name__ == "__main__":
 		if my_ts.getHour() == 0:
 			my_func.day_distribution(my_func.behavior(my_ts.dayOfWeek()), bins)
 
-			print("Today is ", my_ts.getDay(), my_ts.getMonth(), my_ts.getYear())
+			print("Today is ", my_ts.getDay(), my_ts.getMonth(), my_ts.getYear(), "and is", my_ts.dayOfWeek())
 
 		#put trash in the bin
 		for key, value in bins.items():
 			#pop the first value of the 
-			current = {}
 			value['timestamp'] = my_ts.getFullTs()
 			for waste_type in my_const.getNames():
-				current[waste_type] = value["distribution"][waste_type].pop(0)
+				current = value["distribution"][waste_type].pop(0)
 				
-				if((current[waste_type] + value['levels'][waste_type]) <= value['total_height']):
-					value['levels'][waste_type] += current[waste_type]
-				else:
-					print(waste_type, " full")
-					#TODO: move current to other bin
-			
+				throwOut_trash(bins, key, current, waste_type)
 
 			#send mqtt
 			#convert the dictionary in a json and in a string

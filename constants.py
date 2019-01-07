@@ -46,17 +46,4 @@ TOPIC_STATUS = TOPIC_BIN+"/status"
 
 
 
-config_file = {
-			  "prev_config": False,
-			  "n_of_bins": 12,
-			  "usage": "mid",
-			  "bin_dimension": 100,
-			  "collection_day": ["Tuesady", "Thursday"],
-			  "collection_hour": 18,
-			  "speed": 2,
-			  "waste_rec_level": 65,
-			  "area": {"x1": 10,
-			  		   "y1": 10,
-			  		   "x2": 11,
-			  		   "y2": 11}
-			  }	
+config_file = '{"prev_config": True,"n_of_bins": 5,"usage": "mid", "bin_dimension": 100, "collection_day": ["Tuesday", "Thursday"],"collection_hour": 18,"speed": 2,"waste_rec_level": 65,"area": {"x1": 45,"y1": 9,"x2": 46,"y2": 11}}'
