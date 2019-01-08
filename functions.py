@@ -30,7 +30,8 @@ class Functions():
 				"usage": self.db.getUsage(_coord["_id"]),
 				"levels": last_vals,
 				"distribution": {},
-				"total_height": self.db.get_dimension(_coord["_id"])
+				"total_height": self.db.get_dimension(_coord["_id"]),
+				"collection_name": self.db.getSimulationName()
 			}
 
 		self.bins = self.day_distribution(self.behavior(ts.dayOfWeek(), ts.getHour()), starting_bins)

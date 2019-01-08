@@ -105,12 +105,13 @@ class MyDB():
 		x = constants.find_one()
 		return x["collection_day"], x["collection_hour"], x["speed"], x["waste_rec_level"]
 
-
+	def getSimulationName(self):
+		return self.simulation_name
 
 	##### PRIVATE METHODS #####
 	def _createHistoryCollection(self, db_name, coll_name):
-		simulation_name = "simulation_"+str(coll_name)[:-7].replace(" ", "_")
-		return db_name[simulation_name]
+		self.simulation_name = "simulation_"+str(coll_name)[:-7].replace(" ", "_")
+		return db_name[self.simulation_name]
 
 	def _store_final_values(self, my_query, my_update):
 		for q, u in zip(my_query, my_update):
