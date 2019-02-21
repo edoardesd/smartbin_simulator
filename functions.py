@@ -24,8 +24,8 @@ class Functions():
 			last_vals = self.db.last_values(_coord["_id"])
 			starting_bins[_index] = {
 				"bin_id": _coord["_id"],
-				"coordinates": {"x": _coord["x"],
-								"y": _coord["y"]},
+				"coordinates": {"lat": _coord["lat"],
+								"lng": _coord["lng"]},
 				"timestamp": ts.getFullTs(),
 				"usage": self.db.getUsage(_coord["_id"]),
 				"levels": last_vals,
