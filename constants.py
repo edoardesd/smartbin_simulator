@@ -2,6 +2,33 @@
 
 import mongodb
 
+
+
+config_file = '{"prev_config": False,\
+		"n_of_bins": 10,\
+		"usage": "mid",\
+		"bin_dimension": 100,\
+		"collection_day": ["Tuesday", "Thursday"],\
+		"collection_hour": 18,\
+		"speed": 60,\
+		"waste_rec_level": 65,\
+		"area": {"x1": 45,\
+			 "y1": 9,\
+			 "x2": 46,\
+			 "y2": 11\
+			}\
+		}'
+
+TOPIC_BIN = "smartbin"
+## CTRL
+TOPIC_CTRL = TOPIC_BIN+"/ctrl"
+TOPIC_EMPTY = TOPIC_CTRL+"/emptybin"
+TOPIC_CONFIG = TOPIC_CTRL+"/config"
+## STATUS
+TOPIC_STATUS = TOPIC_BIN+"/status"
+
+
+
 class Constants():
 	def __init__(self, db):
 		self.db = db
@@ -35,15 +62,3 @@ class Constants():
 	def getUsage(self):
 		return self.usage_type
 
-
-TOPIC_BIN = "smartbin"
-## CTRL
-TOPIC_CTRL = TOPIC_BIN+"/ctrl"
-TOPIC_EMPTY = TOPIC_CTRL+"/emptybin"
-TOPIC_CONFIG = TOPIC_CTRL+"/config"
-## STATUS
-TOPIC_STATUS = TOPIC_BIN+"/status"
-
-
-
-config_file = '{"prev_config": True,"n_of_bins": 5,"usage": "mid", "bin_dimension": 100, "collection_day": ["Tuesday", "Thursday"],"collection_hour": 18,"speed": 2,"waste_rec_level": 65,"area": {"x1": 45,"y1": 9,"x2": 46,"y2": 11}}'

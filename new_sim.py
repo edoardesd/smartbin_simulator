@@ -64,7 +64,7 @@ def signal_handler(signal, frame):
 
 ###### START MQTT ######
 broker = "localhost"
-client = mqtt.Client("simulator1") 
+client = mqtt.Client("simulator2") 
 
 client.on_connect = on_connect 
 client.on_disconnect = on_disconnect
