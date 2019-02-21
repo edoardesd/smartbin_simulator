@@ -43,8 +43,8 @@ class MyDB():
 		old_val = []
 		for key, value in my_config.items():
 			coord.append({"_id": value["bin_id"],
-						  "x": value["coordinates"]["x"],
-						  "y": value["coordinates"]["y"],
+						  "lat": value["coordinates"]["lat"],
+						  "lng": value["coordinates"]["lng"],
 						  "building": value["building"],
 						  "floor": value["floor"], 
 						  "description": value["description"]})
@@ -89,7 +89,7 @@ class MyDB():
 
 	def get_coordinates(self, building=0):
 		_bins = []
-		_select = { "_id": 1, "x": 1, "y": 1}
+		_select = { "_id": 1, "lat": 1, "lng": 1}
 		if building == 0:
 			_where = {}
 		else:

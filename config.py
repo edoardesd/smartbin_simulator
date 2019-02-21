@@ -30,8 +30,8 @@ class MyConfig():
 			_x, _y = self._position(my_config["area"]["x1"], my_config["area"]["x2"], my_config["area"]["y1"], my_config["area"]["y2"])
 			bins_conf[i] = {
 					"bin_id": "bin"+str(i),
-					"coordinates": {"x": _x,
-									"y": _y},
+					"coordinates": {"lat": _x,
+									"lng": _y},
 					"timestamp": "NULL",
 					"usage": usage[i],
 					"levels": dict((el,0) for el in self.const.getNames()), #create dictionary with 0 from the WASTE_NAME list
