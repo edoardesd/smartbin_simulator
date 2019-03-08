@@ -27,9 +27,9 @@ class MyDB():
 		local_update = {}
 		query = []
 		for key, value in my_bins.items():
-			print ("in")
 			update = {"levels": value['levels']}
-			update_coord = {"levels": value['levels'], "coordinates": value['coordinates']}
+
+			update_coord = {"total_level": self._convertInLevel(max(value['levels'].values())), "coordinates": value['coordinates']}
 			query.append({"_id": value["bin_id"]})
 			final_update.append(update)
 			coord_update.append(update_coord)
@@ -115,6 +115,14 @@ class MyDB():
 		return self.simulation_name
 
 	##### PRIVATE METHODS #####
+	def _convertInLevel(self, my_level):
+		if(my_level < 50):
+			return "LOW"
+		elif(my_level >= 50 and my_level < 75):
+			return "MEDIUM"
+		else:
+			return "HIGH"
+
 	def _createHistoryCollection(self, db_name, coll_name):
 		self.simulation_name = "simulation_"+str(coll_name)[:-7].replace(" ", "_")
 		return db_name[self.simulation_name]
