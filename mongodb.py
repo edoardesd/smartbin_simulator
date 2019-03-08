@@ -23,18 +23,24 @@ class MyDB():
 	##### STORING FUNCTIONS #####
 	def updateFinalDB(self, my_bins):
 		final_update = []
+		coord_update = []
 		local_update = {}
 		query = []
 		for key, value in my_bins.items():
+			print ("in")
 			update = {"levels": value['levels']}
-
+			update_coord = {"levels": value['levels'], "coordinates": value['coordinates']}
 			query.append({"_id": value["bin_id"]})
 			final_update.append(update)
+			coord_update.append(update_coord)
 			local_update[value["bin_id"]] = update
 
 		local_update["_id"] = my_bins[0]["timestamp"]
 		self._store_final_values(query, final_update)
+		self._update_fill_levels(query, coord_update)
+
 		self._store_values(local_update)
+
 
 	def storeUpdate(self, my_config):
 		coord = []
@@ -116,6 +122,10 @@ class MyDB():
 	def _store_final_values(self, my_query, my_update):
 		for q, u in zip(my_query, my_update):
 			x = self.restore.update(q, u)
+
+	def _update_fill_levels(self, my_query, my_update):
+		for q, u in zip(my_query, my_update):
+			x = self.coordinates.update(q, u)
 
 	def _store_values(self, my_update):
 		x = self.values.insert(my_update)
