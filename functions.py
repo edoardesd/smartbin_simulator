@@ -100,13 +100,13 @@ class Functions():
 	def _getCoord(self):
 		self.coordinates = []
 		for key, val in self.bins.items():
-			self.coordinates.append([val["coordinates"]["x"], val["coordinates"]["y"]])
+			self.coordinates.append([val["coordinates"]["lat"], val["coordinates"]["lng"]])
 
 		return self.coordinates
 
 	def calculateNeighbours(self, sigle_bin, deep):
 		tree = spatial.KDTree(self._getCoord())
-		pts = np.array([sigle_bin["coordinates"]["x"], sigle_bin["coordinates"]["y"]])
+		pts = np.array([sigle_bin["coordinates"]["lat"], sigle_bin["coordinates"]["lng"]])
 		distance, location =  tree.query(pts, k=deep)
 		return location[-1:][0]
 

@@ -63,8 +63,8 @@ def signal_handler(signal, frame):
 
 
 ###### START MQTT ######
-broker = "localhost"
-client = mqtt.Client("simulator2") 
+broker = c.MQTT_HOST
+client = mqtt.Client("smartbinsim") 
 
 client.on_connect = on_connect 
 client.on_disconnect = on_disconnect
@@ -139,9 +139,7 @@ if __name__ == "__main__":
 
 			#send mqtt
 			#convert the dictionary in a json and in a string
-			client.publish("{0}/{1}".format(c.TOPIC_STATUS, str(value['bin_id'])), json.dumps(value)) 
-
-
+			client.publish("{0}/{1}".format(c.TOPIC_STATUS, str(value['bin_id'])), json.dumps(value))
 		bins = my_func.check_recollection(bins, my_ts.dayOfWeek(), my_ts.getHour())
 		my_db.updateFinalDB(bins)
 		

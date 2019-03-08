@@ -5,19 +5,21 @@ import mongodb
 
 
 config_file = '{"prev_config": False,\
-		"n_of_bins": 10,\
+		"n_of_bins": 2,\
 		"usage": "mid",\
 		"bin_dimension": 100,\
 		"collection_day": ["Tuesday", "Thursday"],\
 		"collection_hour": 18,\
-		"speed": 60,\
+		"speed": 10,\
 		"waste_rec_level": 65,\
-		"area": {"x1": 45,\
-			 "y1": 9,\
-			 "x2": 46,\
-			 "y2": 11\
+		"area": {"x1": 45.479298,\
+			 "y1": 9.225592,\
+			 "x2": 45.476547,\
+			 "y2": 9.234376\
 			}\
 		}'
+
+MQTT_HOST = "34.244.160.143"
 
 TOPIC_BIN = "smartbin"
 ## CTRL
