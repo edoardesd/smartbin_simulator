@@ -1,0 +1,6 @@
+paho-mqtt
+pymongo
+matplotlib
+scipy
+sympy
+nose
